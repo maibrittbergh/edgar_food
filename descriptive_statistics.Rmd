@@ -17,112 +17,72 @@ output:
 fontsize: 12pt
 ---
 
+
+# Descriptive Statistics
+
+## Libraries
+
 ```{r}
-library(ggplot2)
-library(tidyverse)
 library(readr)
-```{r}
-library(readxl)
-require(klaR)
-#install.packages("e1071")
-library(e1071)
-#install.packages("gmodels")
-library(gmodels)
-#install.packages('caret')
-library(caret)
+library(ggplot2)
 
 ```
 
 
-## Read in Data 
+## Read in dataset
 
+- Loading our tidy dataset
 ```{r}
-emi = read_excel("EDGAR-FOOD_v6.xlsx", 
-    sheet = "GHG FOOD system emi", skip = 3)
-shares = read_excel("EDGAR-FOOD_v6.xlsx", 
-    sheet = "GHG FOOD system shares", skip = 3)
-sector= read_excel("EDGAR-FOOD_v6.xlsx", 
-    sheet = "FOOD emi by sector ", skip = 3, na ="NULL")
-cd= read_excel("EDGAR-FOOD_v6.xlsx", 
-    sheet = "country definition", skip = 3, na ="NULL") 
-cd=cd[-which(cd$`Country ISO code`=="NFK"),]
+#ap_emi_dev_cl
+AP_emi<- read_delim("/Users/maibrittberghofer/Desktop/Master/Module/Dataanalysis/Final Project Dataset/ap_emi_dev_cl.csv", 
+    delim = ";",  escape_double = FALSE, trim_ws = TRUE)
+#ap_sector_emi_dev_cl
+AP_sec <- read_delim("/Users/maibrittberghofer/Desktop/Master/Module/Dataanalysis/Final Project Dataset/ap_sector_emi_dev_cl.csv", 
+    delim = ";",  escape_double = FALSE, trim_ws = TRUE)
+
+#emi_ghg_class_region
+GHG_emi <- read_csv("/Users/maibrittberghofer/Desktop/Master/Module/Dataanalysis/Final Project Dataset/emi_ghg_class_region.csv")
+
+# emi_sector_ghg
+GHG_sector = read_csv("/Users/maibrittberghofer/Desktop/Master/Module/Dataanalysis/Final Project Dataset/emi_sector_ghg.csv")
 
 ```
+## Visualization
 
-## tidy data
 
+### GHG Emissions by sector 
 
+#### Sector& Development status
 ```{r}
 
+sector2=GHG_sector[-(which(GHG_sector$`country class`==0)),]
+ggplot(data=sector2)+geom_col(aes(x=sector2$`country class`, y=sector2$emissions, fill=sector2$system_stage))+ggtitle("Greenhouse Gas Emissions by Sector", subtitle = "Comparison of Industrialized Countries and Developing Countries")+ylab("GHG Emissions [kton substance/year]")+xlab("Country Class")+scale_fill_discrete(name = "Food System Stage")
 
-# we change the structure of the data in a tidyform: called envi to better work on the dataframe
-
-years=c(1990:2018)
-countries=emi$Name
-
-
-
-
-
-envi=c(0,0,0,0,0)
-
-
-  
- for ( i in 1:length(years)){
-   
-  
-a=rep(years[i], length(countries))
-e=emi[,2+i]
-c=emi$Name
-r=cd$`Regional grouping`
-index=cd$`Country class`
-k=cbind(a,e,c,r, index)
-colnames(k)=c("years", "emissions", "names", "region", "country class")
-envi=rbind(envi,k)
-
-
-
- }
-
-  envi$emissions=as.numeric(envi$emissions)
-  envi$years=as.numeric(envi$years)
-envi=envi[-1,]
 
 ```
 
 
 
+- Generally there are higher GHG emissions by the food sector emitted by developing countries than be industrialized countries. This could be explained by the fact that generally there are more developing countries (164), than industrialised(59)
+- Generally independent of the development status of the country, the highest emissions come due to the processing of food. In developing countries, the highest source for GHG emissions is the LULUC (Land-Use; Land-Use-Change). Whereas in industrialsed countries the highest emissions are in other forms of food processing. Examples of this could be factory farming.
 
 
-
+#### Sector & Region 
 
 ```{r}
+ggplot()+geom_col(aes(x=GHG_sector$region, y=GHG_sector$emissions, fill=GHG_sector$system_stage))+ggtitle("Greenhouse Gas Emissions by Sector", subtitle = "Comparison of different regions")+ylab("GHG Emissions [kton substance/year]")+xlab("Region [IM24_sh]")+scale_fill_discrete(name = "Food System Stage")+theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
-(which(sector$dev_country==0))
-sector2=sector[-(which(sector$dev_country==0)),]
-ggplot(data=sector2)+geom_col(aes(x=sector2$dev_country, y=sector2$Y_1990, fill=sector2$FOOD_system_stage))
 ```
+- The highest emittants are China, Brazil, India+ and Indonesia+
 
+
+#### Sector, Emissions and Substance
 
 ```{r}
+ggplot()+geom_col(aes(x=GHG_sector$substance, y=GHG_sector$emissions, fill=GHG_sector$system_stage))+ggtitle("Greenhouse Gas Emissions by Sector", subtitle = "Comparison of different substances. ")+ylab("GHG Emissions [kton substance/year]")+xlab("Substance")+scale_fill_discrete(name = "Food System Stage")
 
-(which(sector$dev_country==0))
-sector2=sector[-(which(sector$dev_country==0)),]
-ggplot(data=sector2)+geom_col(aes(x=sector2$C_group_IM24_sh, y=sector2$Y_1990, fill=sector2$FOOD_system_stage))+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
+- GWP100 describes the global Warmimg Potential  within the next 100 years
 
-
-```{r}
-
-envi2=envi[-(which(envi$`country class`==0)),]
-ggplot(data=envi2)+geom_col(aes(x=years, y=envi2$emissions, fill=envi2$`country class`))
-```
-```
-
-
-
-```{r}
-head(envi)
-ggplot(data=envi)+geom_col(aes(x=years, y=envi$emissions, fill=envi$region))
-```
+#### Sector, Emissions and Substance
 
